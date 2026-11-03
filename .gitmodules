@@ -1,3 +1,3 @@
 [submodule "skills"]
 	path = skills
-	url = https://github.com/sweg9/cicd-harness.git
+	url = https://github.com/sweg9/harness.git
