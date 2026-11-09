@@ -1,0 +1,27 @@
+# Starting values (C-12). Tune here, never in code.
+detector:
+  # Control kinds in data-model.md order. The order is the YOLO class id.
+  classes: [switch, push_button, toggle, knob, remote]
+  frame_stride: 5            # FR-01: run on every 5th frame
+  dataset_root: ../dataset   # the private dataset repo, checked out next to this one
+  sources: [internal, external]
+  exclude_folders: [lgh-appliance]   # appliance photos, not switch data
+  build_dir: data/yolo       # generated, git-ignored
+  # Part of `revise` held out (by burst) for early stopping and model choice.
+  # `eval` is never seen in training or model choice; it is only for evaluate.py.
+  val_fraction: 0.15
+  # Rare kinds: train images holding one are listed this many times.
+  oversample: {push_button: 3, toggle: 3, knob: 3, remote: 3}
+  train:
+    model: yolo11s.pt
+    imgsz: 640
+    epochs: 120
+    patience: 30
+    batch: 16
+    device: mps
+    seed: 0
+  predict:
+    conf: 0.25
+    iou: 0.5               # IoU for counting a detection as a match in evaluate.py
+fingerprint:
+  similarity_to_refind: 0.7  # FR-09
