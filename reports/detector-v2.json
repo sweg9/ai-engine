@@ -1,0 +1,62 @@
+{
+  "requirement": "FR-01",
+  "weights": "runs/detector-v2/weights/best.pt",
+  "split": "eval",
+  "conf": 0.25,
+  "iou": 0.5,
+  "classes": [
+    "switch"
+  ],
+  "by_source": {
+    "all": {
+      "switch": {
+        "tp": 469,
+        "fp": 204,
+        "fn": 105,
+        "precision": 0.6969,
+        "recall": 0.8171
+      }
+    },
+    "internal": {
+      "switch": {
+        "tp": 72,
+        "fp": 28,
+        "fn": 26,
+        "precision": 0.72,
+        "recall": 0.7347
+      }
+    },
+    "external": {
+      "switch": {
+        "tp": 397,
+        "fp": 176,
+        "fn": 79,
+        "precision": 0.6928,
+        "recall": 0.834
+      }
+    }
+  },
+  "kind_agnostic": {
+    "all": {
+      "tp": 469,
+      "fp": 204,
+      "fn": 105,
+      "precision": 0.6969,
+      "recall": 0.8171
+    },
+    "internal": {
+      "tp": 72,
+      "fp": 28,
+      "fn": 26,
+      "precision": 0.72,
+      "recall": 0.7347
+    },
+    "external": {
+      "tp": 397,
+      "fp": 176,
+      "fn": 79,
+      "precision": 0.6928,
+      "recall": 0.834
+    }
+  }
+}
