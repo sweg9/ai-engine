@@ -2,6 +2,11 @@
 detector:
   # Control kinds in data-model.md order. The order is the YOLO class id.
   classes: [switch, push_button, toggle, knob, remote]
+  # Kinds folded into another kind for training only; labels are not changed.
+  # Tried in detector-v2 (all kinds -> switch): kind-agnostic AP50 on eval 0.793
+  # vs 0.819 for the five-class v1, so it is off. Example:
+  # merge: {push_button: switch, toggle: switch, knob: switch, remote: switch}
+  merge: {}
   frame_stride: 5            # FR-01: run on every 5th frame
   dataset_root: ../dataset   # the private dataset repo, checked out next to this one
   sources: [internal, external]

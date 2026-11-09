@@ -21,9 +21,14 @@ uv run pytest
 | `revise` | `train` and `val` | `val` is about 15% of `revise`, held out by burst, for early stopping and choosing the weights |
 | `eval` | `test` | Only `detector.evaluate` reads it. Never tune labels, settings or prompts on its numbers |
 
-`internal/lgh-appliance/` is left out (appliance photos, not switches). Train images holding a rare kind are listed several times (`oversample`).
+`internal/lgh-appliance/` is left out (appliance photos, not switches). Train images holding a rare kind are listed several times (`oversample`). `merge` folds kinds together for training only, without changing the labels; it is off because the single-class detector-v2 was worse than the five-class detector-v1.
 
-`detector.evaluate` reports precision and recall per kind at `predict.conf` and IoU `predict.iou`, for all of `eval` and separately for `internal` (team photos) and `external` (public datasets).
+`detector.evaluate` reports precision and recall per kind at `predict.conf` and IoU `predict.iou`, for all of `eval` and separately for `internal` (team photos) and `external` (public datasets). `kind_agnostic` counts a control as found whatever kind was predicted, which is how the hub uses the detector: P-S1 (VLM) decides the kind.
+
+| Model | Classes | Kind-agnostic P / R on `eval` (conf 0.25) | Team photos P / R | Used |
+|---|---|---|---|---|
+| detector-v1 | 5 | 0.78 / 0.83 | 0.83 / 0.79 | Yes |
+| detector-v2 | 1 (all merged) | 0.70 / 0.82 | 0.72 / 0.73 | No |
 
 ## Skills and standards
 

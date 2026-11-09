@@ -20,7 +20,14 @@ def _bucket(key: str) -> float:
     return int(hashlib.sha256(key.encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
 
 
-def yolo_lines(record: dict, classes: list[str]) -> list[str]:
+def train_classes(cfg: dict) -> list[str]:
+    """YOLO class names after `merge`, in data-model order."""
+    merge = cfg.get("merge") or {}
+    return list(dict.fromkeys(merge.get(k, k) for k in cfg["classes"]))
+
+
+def yolo_lines(record: dict, classes: list[str], merge: dict | None = None) -> list[str]:
+    merge = merge or {}
     lines = []
     for c in record["controls"]:
         if c.get("decoy"):
@@ -31,7 +38,7 @@ def yolo_lines(record: dict, classes: list[str]) -> list[str]:
         x1, y1 = min(1.0, x + w), min(1.0, y + h)
         if x1 <= x0 or y1 <= y0:
             continue
-        cls = classes.index(c["kind"])
+        cls = classes.index(merge.get(c["kind"], c["kind"]))
         lines.append(f"{cls} {(x0 + x1) / 2:.6f} {(y0 + y1) / 2:.6f} {x1 - x0:.6f} {y1 - y0:.6f}")
     return lines
 
@@ -58,7 +65,8 @@ def iter_records(cfg: dict):
 
 
 def build(cfg: dict) -> dict:
-    classes = cfg["classes"]
+    classes = train_classes(cfg)
+    merge = cfg.get("merge") or {}
     out = settings.resolve(cfg["build_dir"])
     for part in ("train", "val", "test"):
         for sub in ("images", "labels"):
@@ -76,7 +84,7 @@ def build(cfg: dict) -> dict:
             raise FileNotFoundError(img)
         link = out / "images" / part / img.name
         link.symlink_to(img)
-        lines = yolo_lines(rec, classes)
+        lines = yolo_lines(rec, classes, merge)
         (out / "labels" / part / f"{rec['image_id']}.txt").write_text("\n".join(lines) + ("\n" if lines else ""))
 
         kinds = {classes[int(l.split()[0])] for l in lines}

@@ -1,5 +1,5 @@
 """FR-01: the detector dataset keeps the five kinds and the revise/eval split."""
-from detector.build_dataset import assign, yolo_lines
+from detector.build_dataset import assign, train_classes, yolo_lines
 from detector.evaluate import match
 
 CLASSES = ["switch", "push_button", "toggle", "knob", "remote"]
@@ -41,3 +41,15 @@ def test_match_counts_wrong_kind_as_miss():
     preds = [("toggle", 0.9, (0, 0, 0.5, 0.5))]
     m = match(gts, preds, 0.5)
     assert m["toggle"] == [0, 1, 0] and m["switch"] == [0, 0, 1]
+
+
+def test_merge_folds_kinds_into_one_class():
+    cfg = {"classes": CLASSES, "merge": {k: "switch" for k in CLASSES[1:]}}
+    assert train_classes(cfg) == ["switch"]
+    c = {"kind": "knob", "bbox": [0.1, 0.1, 0.2, 0.2], "decoy": False}
+    (line,) = yolo_lines(rec(controls=[c]), ["switch"], cfg["merge"])
+    assert line.startswith("0 ")
+
+
+def test_no_merge_keeps_five_classes():
+    assert train_classes({"classes": CLASSES}) == CLASSES

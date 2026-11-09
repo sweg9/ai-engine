@@ -2,6 +2,8 @@
 
 Measuring only: never tune labels, prompts or settings on these numbers.
 A detection is a match when kind is equal and IoU >= predict.iou (greedy, highest confidence first).
+Label kinds the model was not trained on are mapped through `merge`.
+`kind_agnostic` ignores the kind, so models with different classes can be compared.
 """
 import argparse
 import json
@@ -71,10 +73,12 @@ def main():
     ap.add_argument("--out", type=Path, help="write the JSON report here")
     args = ap.parse_args()
     cfg = settings.load(args.settings)["detector"]
-    classes, pcfg = cfg["classes"], cfg["predict"]
+    pcfg, merge = cfg["predict"], cfg.get("merge") or {}
     model = YOLO(str(args.weights))
+    classes = [model.names[i] for i in sorted(model.names)]
 
     groups = defaultdict(lambda: defaultdict(lambda: [0, 0, 0]))
+    agnostic = defaultdict(lambda: [0, 0, 0])
     for folder, rec in iter_records(cfg):
         if rec["split"] != "eval":
             continue
@@ -83,16 +87,20 @@ def main():
             if c.get("decoy"):
                 continue
             x, y, w, h = c["bbox"]
-            gts.append((c["kind"], (max(0, x), max(0, y), min(1, x + w), min(1, y + h))))
+            kind = c["kind"] if c["kind"] in classes else merge.get(c["kind"], c["kind"])
+            gts.append((kind, (max(0, x), max(0, y), min(1, x + w), min(1, y + h))))
         r = model.predict(str(folder / "images" / f"{rec['image_id']}.jpg"),
                           conf=pcfg["conf"], device=cfg["train"]["device"], verbose=False)[0]
         preds = [(classes[int(k)], float(s), tuple(b))
                  for k, s, b in zip(r.boxes.cls, r.boxes.conf, r.boxes.xyxyn.tolist())]
         source = folder.parent.name  # internal / external
+        any_v = match([("any", b) for _, b in gts], [("any", s, b) for _, s, b in preds], pcfg["iou"])["any"]
         for key in ("all", source):
             for kind, v in match(gts, preds, pcfg["iou"]).items():
                 for i in range(3):
                     groups[key][kind][i] += v[i]
+            for i in range(3):
+                agnostic[key][i] += any_v[i]
 
     report = {
         "requirement": "FR-01",
@@ -100,7 +108,9 @@ def main():
         "split": "eval",
         "conf": pcfg["conf"],
         "iou": pcfg["iou"],
+        "classes": classes,
         "by_source": {g: summarize(c) for g, c in groups.items()},
+        "kind_agnostic": {g: summarize({"any": v})["any"] for g, v in agnostic.items()},
     }
     text = json.dumps(report, indent=2)
     print(text)
