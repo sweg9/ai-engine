@@ -1,0 +1,29 @@
+# Starting values (C-12). Tune here, never in code.
+detector:
+  # The three control kinds of the proposal (data-model.md). The order is the YOLO class id.
+  classes: [switch, toggle, power_strip]
+  # How the dataset labels become the three classes. The label files are not changed.
+  # Sources whose switches sit on a power strip: their `switch` boxes become `power_strip`.
+  power_strip_sources: [web-bing-powerstrip, zenodo-powerstrip, wikimedia-commons-powerstrip]
+  # Earlier kinds folded into the three (null drops the box).
+  kind_map: {switch: switch, toggle: toggle, push_button: switch, knob: null, remote: null}
+  dataset_root: ../dataset      # the private dataset repo, checked out next to this one
+  exclude_folders: [lgh-appliance]   # appliance photos, not switch data
+  build_dir: data/yolo          # generated, git-ignored
+  max_side: 1024                # images are copied with the long side cut to this many pixels
+  # Part of `revise` held out (by burst) for early stopping and choosing the weights.
+  # `eval` is never seen in training or model choice; only evaluate.py reads it.
+  val_fraction: 0.15
+  seed: 0
+  train:
+    model: yolo11n.pt           # COCO-pretrained nano model
+    imgsz: 512
+    epochs: 12                  # CPU only: about 7 min per epoch (81 min in all) on the reference laptop
+    patience: 5
+    batch: 16
+    workers: 4
+    device: cpu
+  predict:
+    conf: 0.25
+    iou_match: 0.5              # IoU for counting a detection as a match in evaluate.py
+  frame_stride: 5               # FR-01: run on every 5th camera frame

@@ -1,0 +1,129 @@
+{
+  "classes": [
+    "switch",
+    "toggle",
+    "power_strip"
+  ],
+  "images": 2927,
+  "parts": {
+    "test": {
+      "images": 591,
+      "share": 0.202,
+      "boxes": {
+        "switch": 557,
+        "toggle": 346,
+        "power_strip": 351
+      },
+      "groups": {
+        "internal": 43,
+        "external": 548
+      }
+    },
+    "train": {
+      "images": 1985,
+      "share": 0.678,
+      "boxes": {
+        "switch": 1630,
+        "toggle": 1028,
+        "power_strip": 1144
+      },
+      "groups": {
+        "internal": 111,
+        "external": 1874
+      }
+    },
+    "val": {
+      "images": 351,
+      "share": 0.12,
+      "boxes": {
+        "switch": 281,
+        "toggle": 184,
+        "power_strip": 212
+      },
+      "groups": {
+        "internal": 14,
+        "external": 337
+      }
+    }
+  },
+  "per_source": {
+    "ajm": {
+      "train": 29,
+      "val": 4,
+      "test": 8
+    },
+    "chs": {
+      "train": 27,
+      "test": 9,
+      "val": 3
+    },
+    "hjw": {
+      "train": 34,
+      "test": 13,
+      "val": 7
+    },
+    "lgh": {
+      "train": 21,
+      "test": 13
+    },
+    "openimages-light-switch": {
+      "val": 1,
+      "train": 3,
+      "test": 1
+    },
+    "roboflow-light-switch-dedf6": {
+      "train": 196,
+      "val": 34,
+      "test": 54
+    },
+    "roboflow-light-switch-open-image": {
+      "train": 43,
+      "test": 13,
+      "val": 10
+    },
+    "roboflow-switch-3inct": {
+      "test": 56,
+      "train": 205,
+      "val": 32
+    },
+    "roboflow-switch-bpnbe": {
+      "train": 127,
+      "val": 23,
+      "test": 35
+    },
+    "roboflow-switch-f6lg3": {
+      "train": 246,
+      "val": 46,
+      "test": 77
+    },
+    "roboflow-toggle-switch-imwkt": {
+      "train": 415,
+      "val": 65,
+      "test": 120
+    },
+    "web-bing-powerstrip": {
+      "train": 303,
+      "test": 91,
+      "val": 61
+    },
+    "web-bing-toggle": {
+      "val": 54,
+      "train": 269,
+      "test": 81
+    },
+    "wikimedia-commons-powerstrip": {
+      "train": 18,
+      "test": 5,
+      "val": 1
+    },
+    "zenodo-powerstrip": {
+      "train": 49,
+      "val": 10,
+      "test": 15
+    }
+  },
+  "dropped_boxes": {
+    "roboflow-light-switch-open-image": 1
+  },
+  "val_bursts": 309
+}

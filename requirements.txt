@@ -1,0 +1,7 @@
+# Python 3.11. Versions used for detector-yolo11n.
+ultralytics==8.4.208
+torch==2.13.0
+opencv-python==5.0.0.93
+pillow==12.3.0
+pyyaml>=6
+pytest>=8

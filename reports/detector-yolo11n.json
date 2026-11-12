@@ -1,0 +1,619 @@
+{
+  "requirement": "FR-01",
+  "weights": "runs/detector-yolo11n/weights/best.pt",
+  "split": "test (dataset split eval)",
+  "test_images": 591,
+  "settings": {
+    "conf": 0.25,
+    "iou_match": 0.5,
+    "imgsz": 512
+  },
+  "ultralytics": {
+    "all": {
+      "precision": 0.7994,
+      "recall": 0.7325,
+      "mAP50": 0.7613,
+      "mAP50-95": 0.4816
+    },
+    "switch": {
+      "precision": 0.7434,
+      "recall": 0.6501,
+      "mAP50": 0.6856,
+      "mAP50-95": 0.4225
+    },
+    "toggle": {
+      "precision": 0.8325,
+      "recall": 0.7183,
+      "mAP50": 0.7699,
+      "mAP50-95": 0.4835
+    },
+    "power_strip": {
+      "precision": 0.8224,
+      "recall": 0.8291,
+      "mAP50": 0.8285,
+      "mAP50-95": 0.539
+    }
+  },
+  "class_aware": {
+    "all": {
+      "switch": {
+        "tp": 402,
+        "fp": 176,
+        "fn": 155,
+        "precision": 0.6955,
+        "recall": 0.7217
+      },
+      "toggle": {
+        "tp": 258,
+        "fp": 77,
+        "fn": 88,
+        "precision": 0.7701,
+        "recall": 0.7457
+      },
+      "power_strip": {
+        "tp": 296,
+        "fp": 69,
+        "fn": 55,
+        "precision": 0.811,
+        "recall": 0.8433
+      }
+    },
+    "external": {
+      "switch": {
+        "tp": 337,
+        "fp": 143,
+        "fn": 122,
+        "precision": 0.7021,
+        "recall": 0.7342
+      },
+      "toggle": {
+        "tp": 258,
+        "fp": 76,
+        "fn": 88,
+        "precision": 0.7725,
+        "recall": 0.7457
+      },
+      "power_strip": {
+        "tp": 296,
+        "fp": 69,
+        "fn": 55,
+        "precision": 0.811,
+        "recall": 0.8433
+      }
+    },
+    "internal": {
+      "switch": {
+        "tp": 65,
+        "fp": 33,
+        "fn": 33,
+        "precision": 0.6633,
+        "recall": 0.6633
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:ajm": {
+      "switch": {
+        "tp": 20,
+        "fp": 6,
+        "fn": 1,
+        "precision": 0.7692,
+        "recall": 0.9524
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:chs": {
+      "switch": {
+        "tp": 6,
+        "fp": 10,
+        "fn": 13,
+        "precision": 0.375,
+        "recall": 0.3158
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:hjw": {
+      "switch": {
+        "tp": 12,
+        "fp": 12,
+        "fn": 13,
+        "precision": 0.5,
+        "recall": 0.48
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:lgh": {
+      "switch": {
+        "tp": 27,
+        "fp": 5,
+        "fn": 6,
+        "precision": 0.8438,
+        "recall": 0.8182
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:openimages-light-switch": {
+      "switch": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "toggle": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:roboflow-light-switch-dedf6": {
+      "switch": {
+        "tp": 110,
+        "fp": 31,
+        "fn": 9,
+        "precision": 0.7801,
+        "recall": 0.9244
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 7,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:roboflow-light-switch-open-image": {
+      "switch": {
+        "tp": 7,
+        "fp": 7,
+        "fn": 4,
+        "precision": 0.5,
+        "recall": 0.6364
+      },
+      "toggle": {
+        "tp": 6,
+        "fp": 2,
+        "fn": 3,
+        "precision": 0.75,
+        "recall": 0.6667
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:roboflow-switch-3inct": {
+      "switch": {
+        "tp": 45,
+        "fp": 40,
+        "fn": 5,
+        "precision": 0.5294,
+        "recall": 0.9
+      },
+      "toggle": {
+        "tp": 3,
+        "fp": 10,
+        "fn": 3,
+        "precision": 0.2308,
+        "recall": 0.5
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:roboflow-switch-bpnbe": {
+      "switch": {
+        "tp": 66,
+        "fp": 20,
+        "fn": 7,
+        "precision": 0.7674,
+        "recall": 0.9041
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:roboflow-switch-f6lg3": {
+      "switch": {
+        "tp": 109,
+        "fp": 36,
+        "fn": 97,
+        "precision": 0.7517,
+        "recall": 0.5291
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:roboflow-toggle-switch-imwkt": {
+      "switch": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "toggle": {
+        "tp": 110,
+        "fp": 11,
+        "fn": 10,
+        "precision": 0.9091,
+        "recall": 0.9167
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:web-bing-powerstrip": {
+      "switch": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 252,
+        "fp": 38,
+        "fn": 28,
+        "precision": 0.869,
+        "recall": 0.9
+      }
+    },
+    "source:web-bing-toggle": {
+      "switch": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "toggle": {
+        "tp": 138,
+        "fp": 42,
+        "fn": 72,
+        "precision": 0.7667,
+        "recall": 0.6571
+      },
+      "power_strip": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "source:wikimedia-commons-powerstrip": {
+      "switch": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1.0,
+        "recall": 0.8
+      }
+    },
+    "source:zenodo-powerstrip": {
+      "switch": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "toggle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "power_strip": {
+        "tp": 36,
+        "fp": 29,
+        "fn": 25,
+        "precision": 0.5538,
+        "recall": 0.5902
+      }
+    }
+  },
+  "kind_agnostic": {
+    "all": {
+      "tp": 962,
+      "fp": 316,
+      "fn": 292,
+      "precision": 0.7527,
+      "recall": 0.7671
+    },
+    "external": {
+      "tp": 897,
+      "fp": 282,
+      "fn": 259,
+      "precision": 0.7608,
+      "recall": 0.776
+    },
+    "internal": {
+      "tp": 65,
+      "fp": 34,
+      "fn": 33,
+      "precision": 0.6566,
+      "recall": 0.6633
+    },
+    "source:ajm": {
+      "tp": 20,
+      "fp": 6,
+      "fn": 1,
+      "precision": 0.7692,
+      "recall": 0.9524
+    },
+    "source:chs": {
+      "tp": 6,
+      "fp": 10,
+      "fn": 13,
+      "precision": 0.375,
+      "recall": 0.3158
+    },
+    "source:hjw": {
+      "tp": 12,
+      "fp": 12,
+      "fn": 13,
+      "precision": 0.5,
+      "recall": 0.48
+    },
+    "source:lgh": {
+      "tp": 27,
+      "fp": 6,
+      "fn": 6,
+      "precision": 0.8182,
+      "recall": 0.8182
+    },
+    "source:openimages-light-switch": {
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "source:roboflow-light-switch-dedf6": {
+      "tp": 112,
+      "fp": 36,
+      "fn": 7,
+      "precision": 0.7568,
+      "recall": 0.9412
+    },
+    "source:roboflow-light-switch-open-image": {
+      "tp": 13,
+      "fp": 10,
+      "fn": 7,
+      "precision": 0.5652,
+      "recall": 0.65
+    },
+    "source:roboflow-switch-3inct": {
+      "tp": 50,
+      "fp": 48,
+      "fn": 6,
+      "precision": 0.5102,
+      "recall": 0.8929
+    },
+    "source:roboflow-switch-bpnbe": {
+      "tp": 67,
+      "fp": 22,
+      "fn": 6,
+      "precision": 0.7528,
+      "recall": 0.9178
+    },
+    "source:roboflow-switch-f6lg3": {
+      "tp": 109,
+      "fp": 36,
+      "fn": 97,
+      "precision": 0.7517,
+      "recall": 0.5291
+    },
+    "source:roboflow-toggle-switch-imwkt": {
+      "tp": 110,
+      "fp": 14,
+      "fn": 10,
+      "precision": 0.8871,
+      "recall": 0.9167
+    },
+    "source:web-bing-powerstrip": {
+      "tp": 252,
+      "fp": 40,
+      "fn": 28,
+      "precision": 0.863,
+      "recall": 0.9
+    },
+    "source:web-bing-toggle": {
+      "tp": 138,
+      "fp": 46,
+      "fn": 72,
+      "precision": 0.75,
+      "recall": 0.6571
+    },
+    "source:wikimedia-commons-powerstrip": {
+      "tp": 8,
+      "fp": 0,
+      "fn": 2,
+      "precision": 1.0,
+      "recall": 0.8
+    },
+    "source:zenodo-powerstrip": {
+      "tp": 37,
+      "fp": 30,
+      "fn": 24,
+      "precision": 0.5522,
+      "recall": 0.6066
+    }
+  },
+  "type_accuracy_of_found": 0.9927,
+  "confusion_true_x_pred": {
+    "switch": {
+      "switch": 401,
+      "toggle": 4
+    },
+    "toggle": {
+      "toggle": 258,
+      "switch": 2
+    },
+    "power_strip": {
+      "power_strip": 296,
+      "switch": 1
+    }
+  },
+  "recall_by_box_area": {
+    "<0.1%": {
+      "total": 123,
+      "found": 26,
+      "recall": 0.2114
+    },
+    "0.1-1%": {
+      "total": 566,
+      "found": 442,
+      "recall": 0.7809
+    },
+    "1-5%": {
+      "total": 370,
+      "found": 321,
+      "recall": 0.8676
+    },
+    ">5%": {
+      "total": 195,
+      "found": 173,
+      "recall": 0.8872
+    }
+  },
+  "test_images_near_duplicate_of_train": 1
+}
