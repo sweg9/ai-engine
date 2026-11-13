@@ -78,7 +78,7 @@ The curve was still rising at epoch 12, so more epochs should help. They were no
 
 ## 4. Evaluation
 
-All numbers are on **test** (591 images, 1,254 boxes) with `best.pt`, `imgsz 512`. The counts below use confidence ≥ 0.25 and a match at IoU ≥ 0.5 (`settings.yaml` → `predict`).
+All numbers are on **test** (591 images, 1,254 boxes) with `best.pt`, `imgsz 512`. A match needs IoU ≥ 0.5. Section 4.1 is the Ultralytics output, which picks its own confidence cut-off (best F1). Sections 4.2 to 4.4 use confidence ≥ 0.25 (`settings.yaml` → `predict`).
 
 ### 4.1 Standard detection metrics (Ultralytics `val`)
 

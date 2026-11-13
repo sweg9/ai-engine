@@ -50,7 +50,7 @@ This val set is not the same as the first run's (3inct is out), so the val numbe
 
 ## 4. Evaluation
 
-Both models are measured on the **same test set** (535 images, 1,198 boxes). Each one runs at the size it was trained at. Matches need confidence ≥ 0.25 and IoU ≥ 0.5.
+Both models are measured on the **same test set** (535 images, 1,198 boxes). Each one runs at the size it was trained at. A match needs IoU ≥ 0.5. Section 4.1 is the Ultralytics output, which picks its own confidence cut-off (best F1). Sections 4.2 to 4.4 use the app's cut-off, confidence ≥ 0.25.
 
 ### 4.1 Standard detection metrics
 
