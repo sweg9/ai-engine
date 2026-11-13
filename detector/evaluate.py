@@ -81,15 +81,17 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("weights")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--imgsz", type=int, help="image size; default settings.yaml (use the size the weights were trained at)")
     args = ap.parse_args()
     cfg = load()
     classes = cfg["classes"]
     build = resolve(cfg["build_dir"])
     conf, thr = cfg["predict"]["conf"], cfg["predict"]["iou_match"]
     model = YOLO(args.weights)
+    imgsz = args.imgsz or cfg["train"]["imgsz"]
 
     # 1. Ultralytics metrics on test.
-    m = model.val(data=str(build / "data.yaml"), split="test", imgsz=cfg["train"]["imgsz"],
+    m = model.val(data=str(build / "data.yaml"), split="test", imgsz=imgsz,
                   device=cfg["train"]["device"], plots=False, verbose=False,
                   project=str(ROOT / "runs"), name="eval-tmp", exist_ok=True)
     ultra = {"all": {"precision": round(float(m.box.mp), 4), "recall": round(float(m.box.mr), 4),
@@ -106,7 +108,7 @@ def main() -> None:
     confusion = defaultdict(Counter)                        # true class -> predicted class
     by_size = defaultdict(Counter)
     images = sorted((build / "images" / "test").glob("*.jpg"))
-    for res in model.predict([str(p) for p in images], conf=conf, imgsz=cfg["train"]["imgsz"],
+    for res in model.predict([str(p) for p in images], conf=conf, imgsz=imgsz,
                              device=cfg["train"]["device"], stream=True, verbose=False):
         path = Path(res.path)
         info = index[path.stem]
@@ -147,7 +149,7 @@ def main() -> None:
         "weights": Path(args.weights).as_posix(),
         "split": "test (dataset split eval)",
         "test_images": len(images),
-        "settings": {"conf": conf, "iou_match": thr, "imgsz": cfg["train"]["imgsz"]},
+        "settings": {"conf": conf, "iou_match": thr, "imgsz": imgsz},
         "ultralytics": ultra,
         "class_aware": {s: {c: prf(**v) for c, v in d.items()} for s, d in sorted(aware.items())},
         "kind_agnostic": {s: prf(**v) for s, v in sorted(agnostic.items())},

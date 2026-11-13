@@ -8,7 +8,10 @@ detector:
   # Earlier kinds folded into the three (null drops the box).
   kind_map: {switch: switch, toggle: toggle, push_button: switch, knob: null, remote: null}
   dataset_root: ../dataset      # the private dataset repo, checked out next to this one
-  exclude_folders: [lgh-appliance]   # appliance photos, not switch data
+  # lgh-appliance: appliance photos, not switch data.
+  # roboflow-switch-3inct: boxes the whole plate, while the other sources box each key
+  # (reports/detector-yolo11n.md, section 5). Left out until it is relabelled per key.
+  exclude_folders: [lgh-appliance, roboflow-switch-3inct]
   build_dir: data/yolo          # generated, git-ignored
   max_side: 1024                # images are copied with the long side cut to this many pixels
   # Part of `revise` held out (by burst) for early stopping and choosing the weights.
@@ -17,9 +20,9 @@ detector:
   seed: 0
   train:
     model: yolo11n.pt           # COCO-pretrained nano model
-    imgsz: 512
-    epochs: 12                  # CPU only: about 7 min per epoch (81 min in all) on the reference laptop
-    patience: 5
+    imgsz: 640                  # 512 missed most boxes under 0.1% of the image (v1 report)
+    epochs: 25                  # CPU only: about 9.5 min per epoch at 640 on the reference laptop
+    patience: 10
     batch: 16
     workers: 4
     device: cpu
