@@ -1,0 +1,30 @@
+{
+  "branch": "yolo11n-640-synth",
+  "date": "2026-11-17",
+  "requirements": ["FR-01", "FR-02"],
+  "dataset_commit": "1111830",
+  "protocol_notes": [
+    "team eval split was the YOLO val set and chose best.pt: eval used for model choice, numbers optimistic",
+    "lgh-appliance included; roboflow-switch-3inct excluded",
+    "synthetic seeds 21-40 in training; 41-42 held out for the effect check"
+  ],
+  "detector": {
+    "model": "yolo11n", "imgsz": 640, "epochs": 60, "best_epoch": 60, "device": "mps",
+    "eval": {"images": 569, "boxes": 1247,
+      "all": {"precision": 0.874, "recall": 0.755, "map50": 0.811, "map50_95": 0.549},
+      "switch": {"precision": 0.896, "recall": 0.708, "map50": 0.789, "map50_95": 0.500},
+      "toggle": {"precision": 0.869, "recall": 0.724, "map50": 0.798, "map50_95": 0.545},
+      "power_strip": {"precision": 0.856, "recall": 0.831, "map50": 0.845, "map50_95": 0.602}},
+    "inference_ms": 1.8
+  },
+  "linker": {
+    "team_eval_keys": 58, "top1_agrees_with_team_label": 0.931, "rules_only_top1": 0.862,
+    "end_to_end_internal_eval": {"keys": 136, "found": 0.64, "gang_count_right": 0.598, "gang_index_right": 0.782, "link_agrees_with_team_label": 0.821}
+  },
+  "effect_check": {
+    "held_out": ["syn-e41", "syn-e42"], "presses": 198,
+    "simple": {"press_seen_right": 0.177, "links_right_after_press": 0.273},
+    "learned": {"press_seen_right": 0.318, "links_right_after_press": 0.439, "direction_right": 0.588},
+    "links_right_before_press": 0.217, "chance": 0.242
+  }
+}
