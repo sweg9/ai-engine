@@ -1,0 +1,168 @@
+{
+ "alpha": 3.0,
+ "counts": {
+  "exact": {
+   "living_room|5|0": {
+    "ceiling_light": 0.5
+   },
+   "living_room|5|1": {
+    "accent_light": 0.5
+   },
+   "living_room|5|2": {
+    "accent_light": 0.5
+   },
+   "living_room|5|3": {
+    "accent_light": 0.5
+   },
+   "living_room|5|4": {
+    "accent_light": 0.5
+   },
+   "living_room|1|0": {
+    "ceiling_light": 2.6
+   },
+   "bedroom|1|0": {
+    "ceiling_light": 4.5
+   },
+   "kitchen|1|0": {
+    "ceiling_light": 1.3
+   },
+   "hallway|1|0": {
+    "ceiling_light": 0.5
+   },
+   "bathroom|1|0": {
+    "ceiling_light": 2.4000000000000004
+   },
+   "dressing_room|1|0": {
+    "ceiling_light": 1.0
+   },
+   "kitchen|None|None": {
+    "ceiling_light": 0.5
+   },
+   "utility_room|2|0": {
+    "ceiling_light": 0.5
+   },
+   "utility_room|2|1": {
+    "other": 0.5
+   },
+   "bathroom|2|0": {
+    "ceiling_light": 0.8
+   },
+   "bathroom|2|1": {
+    "exhaust_fan": 0.5
+   },
+   "kitchen|2|0": {
+    "ceiling_light": 1.3
+   },
+   "kitchen|2|1": {
+    "exhaust_fan": 0.5,
+    "cabinet_light": 0.5
+   },
+   "bathroom|3|0": {
+    "ceiling_light": 0.5
+   },
+   "bathroom|3|1": {
+    "exhaust_fan": 0.8
+   },
+   "bathroom|3|2": {
+    "accent_light": 0.5
+   },
+   "hallway|2|0": {
+    "ceiling_light": 0.5
+   },
+   "hallway|2|1": {
+    "accent_light": 0.5
+   },
+   "living_room|3|0": {
+    "ceiling_light": 0.5
+   },
+   "living_room|3|1": {
+    "accent_light": 0.5
+   },
+   "living_room|3|2": {
+    "accent_light": 0.5
+   }
+  },
+  "room_pos": {
+   "living_room|first": {
+    "ceiling_light": 1.0
+   },
+   "living_room|middle": {
+    "accent_light": 2.0
+   },
+   "living_room|last": {
+    "accent_light": 1.0
+   },
+   "living_room|only": {
+    "ceiling_light": 2.6
+   },
+   "bedroom|only": {
+    "ceiling_light": 4.5
+   },
+   "kitchen|only": {
+    "ceiling_light": 1.3
+   },
+   "hallway|only": {
+    "ceiling_light": 0.5
+   },
+   "bathroom|only": {
+    "ceiling_light": 2.4000000000000004
+   },
+   "dressing_room|only": {
+    "ceiling_light": 1.0
+   },
+   "kitchen|unknown": {
+    "ceiling_light": 0.5
+   },
+   "utility_room|first": {
+    "ceiling_light": 0.5
+   },
+   "utility_room|last": {
+    "other": 0.5
+   },
+   "bathroom|first": {
+    "ceiling_light": 1.3
+   },
+   "bathroom|last": {
+    "exhaust_fan": 0.5,
+    "accent_light": 0.5
+   },
+   "kitchen|first": {
+    "ceiling_light": 1.3
+   },
+   "kitchen|last": {
+    "exhaust_fan": 0.5,
+    "cabinet_light": 0.5
+   },
+   "bathroom|middle": {
+    "exhaust_fan": 0.8
+   },
+   "hallway|first": {
+    "ceiling_light": 0.5
+   },
+   "hallway|last": {
+    "accent_light": 0.5
+   }
+  },
+  "pos": {
+   "first": {
+    "ceiling_light": 4.6
+   },
+   "middle": {
+    "accent_light": 2.0,
+    "exhaust_fan": 0.8
+   },
+   "last": {
+    "accent_light": 2.0,
+    "other": 0.5,
+    "exhaust_fan": 1.0,
+    "cabinet_light": 0.5
+   },
+   "only": {
+    "ceiling_light": 12.300000000000002
+   },
+   "unknown": {
+    "ceiling_light": 0.5
+   }
+  }
+ }
+}
