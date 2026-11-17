@@ -2,6 +2,10 @@
 
 All recognition for the hub, run locally with no model API: control detector, state classifier, device detector, result check, fingerprints and sound events (FR-01, FR-02, FR-08, FR-09). The models are listed on the [wiki](https://sweg9.github.io/docs/product/models). The requirements are on the [wiki](https://sweg9.github.io/docs/product/requirements).
 
+## Interface for the hub
+
+The hub in `backend-server` imports this package and calls it through one `ai_engine.Engine` object. The calls, their results and the settings they need are on the wiki: [ai-engine interface](https://sweg9.github.io/docs/api/ai-engine). It is not built yet.
+
 ## Control detector (FR-01)
 
 A YOLO11 model with the five control kinds of `data-model.md`, in this order: `switch`, `push_button`, `toggle`, `knob`, `remote`. All numbers (model, image size, epochs, held-out share, oversampling, thresholds) are in [settings.yaml](settings.yaml) (C-12).
