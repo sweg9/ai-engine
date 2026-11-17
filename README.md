@@ -1,6 +1,6 @@
 # ai-engine
 
-Detector, fingerprints, sound events, VLM prompts and state verification for the hub (FR-01, FR-08, FR-09). The requirements are on the [wiki](https://sweg9.github.io/docs/product/requirements).
+All recognition for the hub, run locally with no model API: control detector, state classifier, device detector, result check, fingerprints and sound events (FR-01, FR-02, FR-08, FR-09). The models are listed on the [wiki](https://sweg9.github.io/docs/product/models). The requirements are on the [wiki](https://sweg9.github.io/docs/product/requirements).
 
 ## Control detector (FR-01)
 
@@ -23,7 +23,7 @@ uv run pytest
 
 `internal/lgh-appliance/` is left out (appliance photos, not switches). Train images holding a rare kind are listed several times (`oversample`). `merge` folds kinds together for training only, without changing the labels; it is off because the single-class detector-v2 was worse than the five-class detector-v1.
 
-`detector.evaluate` reports precision and recall per kind at `predict.conf` and IoU `predict.iou`, for all of `eval` and separately for `internal` (team photos) and `external` (public datasets). `kind_agnostic` counts a control as found whatever kind was predicted, which is how the hub uses the detector: P-S1 (VLM) decides the kind.
+`detector.evaluate` reports precision and recall per kind at `predict.conf` and IoU `predict.iou`, for all of `eval` and separately for `internal` (team photos) and `external` (public datasets). `kind_agnostic` counts a control as found whatever kind was predicted. The hub now takes the kind from the detector itself (there is no VLM any more), so the per-kind numbers are the ones that matter.
 
 | Model | Classes | Kind-agnostic P / R on `eval` (conf 0.25) | Team photos P / R | Used |
 |---|---|---|---|---|

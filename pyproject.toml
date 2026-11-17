@@ -1,7 +1,7 @@
 [project]
 name = "ai-engine"
 version = "0.1.0"
-description = "Detector, fingerprints, sound events and VLM prompts for the sweg9 hub (FR-01, FR-08, FR-09)"
+description = "Local recognition for the sweg9 hub: detectors, state classifier, result check, fingerprints (FR-01, FR-02, FR-08, FR-09)"
 requires-python = ">=3.11,<3.13"
 dependencies = [
     "ultralytics>=8.3",
