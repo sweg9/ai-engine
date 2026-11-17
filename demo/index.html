@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>스위치 인식</title>
+<style>
+  :root {
+    --bg: #0b0c0e; --ink: #f3f4f6; --muted: #9aa0a8; --glass: rgba(16,17,20,.62); --line: rgba(255,255,255,.12);
+    --switch: #f5c451; --toggle: #6ad3c4; --power_strip: #b39cff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden;
+    font: 14px/1.4 "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  video { display: none; }
+  .glass { background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line); border-radius: 14px; }
+  #top { position: fixed; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 8px; pointer-events: none; }
+  #brand { padding: 10px 14px; display: flex; align-items: center; gap: 10px; pointer-events: auto; }
+  #brand b { font-weight: 600; letter-spacing: -.01em; }
+  #dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+  #dot.live { background: #4ade80; box-shadow: 0 0 0 4px rgba(74,222,128,.18); }
+  #meta { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #ms { padding: 10px 14px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  #bottom { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px; padding: 10px 14px; max-width: calc(100% - 32px); flex-wrap: wrap; justify-content: center; }
+  .count { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+  .count i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .count span { color: var(--muted); }
+  .sep { width: 1px; height: 18px; background: var(--line); }
+  label.conf { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+  input[type=range] { width: 90px; accent-color: var(--ink); }
+  button { font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+  button:hover { border-color: rgba(255,255,255,.3); }
+  #rooms { position: fixed; top: 70px; left: 16px; display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 32px); }
+  #rooms button { background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: 13px; padding: 6px 12px; border-radius: 999px; }
+  #rooms button.on { background: var(--ink); color: #111; border-color: var(--ink); }
+  #panel { position: fixed; left: 50%; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 64px); transform: translateX(-50%);
+    width: min(420px, calc(100% - 32px)); padding: 14px 16px; display: none; }
+  #panel.on { display: block; }
+  #panel .step { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  #panel .say { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  #panel .sub { color: var(--muted); font-size: 13px; margin: -4px 0 10px; }
+  #panel .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  #panel .primary { background: var(--ink); color: #111; border-color: var(--ink); font-weight: 600; }
+  .ok { color: #4ade80; } .ng { color: #f87171; }
+  #msg { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; color: var(--muted); padding: 24px; pointer-events: none; }
+</style>
+</head>
+<body>
+<video id="v" playsinline muted></video>
+<canvas id="c"></canvas>
+<div id="msg">카메라를 켜는 중…</div>
+
+<div id="top">
+  <div id="brand" class="glass"><span id="dot"></span><b>스위치 인식</b><span id="meta">모델 준비 중</span></div>
+  <div id="ms" class="glass">–</div>
+</div>
+
+<div id="rooms"></div>
+<div id="panel" class="glass"><div class="step"></div><div class="say"></div><div class="sub"></div><div class="row"></div></div>
+
+<div id="bottom" class="glass">
+  <div class="count"><i style="background:var(--switch)"></i><span>스위치</span> <b id="n-switch">0</b></div>
+  <div class="count"><i style="background:var(--toggle)"></i><span>토글</span> <b id="n-toggle">0</b></div>
+  <div class="count"><i style="background:var(--power_strip)"></i><span>멀티탭</span> <b id="n-power_strip">0</b></div>
+  <div class="sep"></div>
+  <label class="conf">신뢰도 <input id="conf" type="range" min="0.1" max="0.9" step="0.05" value="0.3"><b id="confv">30%</b></label>
+  <button id="flip" hidden>카메라 전환</button>
+  <button id="checkBtn">연결 확인</button>
+</div>
+
+<script>
+const v = document.getElementById("v"), c = document.getElementById("c"), g = c.getContext("2d");
+const msg = document.getElementById("msg"), conf = document.getElementById("conf");
+const COLOR = Object.fromEntries(["switch", "toggle", "power_strip"].map(k => [k, getComputedStyle(document.documentElement).getPropertyValue("--" + k).trim()]));
+let boxes = [], devices = [], devIdx = 0, stream = null, room = "living_room";
+const ROOMS = [["living_room", "거실"], ["bedroom", "침실"], ["kitchen", "주방"], ["bathroom", "욕실"], ["hallway", "현관·복도"], ["other", "기타"]];
+const roomsEl = document.getElementById("rooms");
+for (const [k, t] of ROOMS) {
+  const b = document.createElement("button"); b.textContent = t; b.dataset.k = k;
+  b.onclick = () => { room = k; roomsEl.querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.k === k)); };
+  roomsEl.appendChild(b);
+}
+roomsEl.firstChild.classList.add("on");
+const grab = document.createElement("canvas");
+
+conf.oninput = () => document.getElementById("confv").textContent = Math.round(conf.value * 100) + "%";
+
+async function start() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  const id = devices[devIdx]?.deviceId;
+  stream = await navigator.mediaDevices.getUserMedia({ video: id ? { deviceId: { exact: id }, width: 1280 } : { facingMode: "environment", width: 1280 }, audio: false });
+  v.srcObject = stream; await v.play();
+  devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
+  document.getElementById("flip").hidden = devices.length < 2;
+  msg.textContent = "";
+}
+document.getElementById("flip").onclick = () => { devIdx = (devIdx + 1) % devices.length; start(); };
+
+// cover-fit the video to the screen; boxes go through the same mapping
+function fit() {
+  const W = c.width = innerWidth * devicePixelRatio, H = c.height = innerHeight * devicePixelRatio;
+  const s = Math.max(W / v.videoWidth, H / v.videoHeight);
+  return { s, ox: (W - v.videoWidth * s) / 2, oy: (H - v.videoHeight * s) / 2, W, H };
+}
+
+function draw() {
+  if (v.videoWidth) {
+    const f = fit(), d = devicePixelRatio;
+    g.drawImage(frozen || v, f.ox, f.oy, v.videoWidth * f.s, v.videoHeight * f.s);
+    if (spot) {
+      const [x, y, w, h] = spot;
+      g.setLineDash([6 * d, 4 * d]); g.lineWidth = 3 * d; g.strokeStyle = "#fde047";
+      g.beginPath(); g.roundRect(f.ox + x * v.videoWidth * f.s - 6 * d, f.oy + y * v.videoHeight * f.s - 6 * d, w * v.videoWidth * f.s + 12 * d, h * v.videoHeight * f.s + 12 * d, 8 * d); g.stroke();
+      g.setLineDash([]);
+    }
+    g.font = `600 ${12 * d}px Pretendard, "Apple SD Gothic Neo", system-ui`;
+    for (const b of (frozen ? [] : boxes)) {
+      const [x, y, w, h] = b.box, col = COLOR[b.kind] || "#fff";
+      const X = f.ox + x * v.videoWidth * f.s, Y = f.oy + y * v.videoHeight * f.s, BW = w * v.videoWidth * f.s, BH = h * v.videoHeight * f.s;
+      const id = keyId(b), picked = sel && id === sel.id;
+      g.lineWidth = (picked ? 4 : 2) * d; g.strokeStyle = picked ? "#fff" : col;
+      g.beginPath(); g.roundRect(X, Y, BW, BH, 6 * d); g.stroke();
+      const key = b.gang_count > 1 ? ` ${b.gang_index + 1}/${b.gang_count}` : "";
+      const t = confirmed[id] ? `✓ ${confirmed[id]}${key}` : b.guess ? `${b.guess[0].label} ${Math.round(b.guess[0].p * 100)}%${key}` : `${b.label} ${Math.round(b.conf * 100)}%`;
+      const tw = g.measureText(t).width + 12 * d, th = 20 * d;
+      const ty = Y - th - 4 * d < 0 ? Y + BH + 4 * d : Y - th - 4 * d;
+      g.fillStyle = col; g.beginPath(); g.roundRect(X, ty, tw, th, 6 * d); g.fill();
+      g.fillStyle = "#111"; g.fillText(t, X + 6 * d, ty + 14 * d);
+    }
+  }
+  requestAnimationFrame(draw);
+}
+
+// one frame in flight at a time, so an old answer never overwrites a newer one
+async function loop() {
+  while (true) {
+    if (!v.videoWidth) { await new Promise(r => setTimeout(r, 200)); continue; }
+    const s = Math.min(1, 960 / v.videoWidth);
+    grab.width = v.videoWidth * s; grab.height = v.videoHeight * s;
+    grab.getContext("2d").drawImage(v, 0, 0, grab.width, grab.height);
+    const blob = await new Promise(r => grab.toBlob(r, "image/jpeg", 0.85));
+    try {
+      const t0 = performance.now();
+      const r = await (await fetch("/detect", { method: "POST", body: blob, headers: { "X-Conf": conf.value, "X-Room": room } })).json();
+      boxes = r.boxes || [];
+      document.getElementById("dot").classList.toggle("live", !!r.ready);
+      document.getElementById("ms").textContent = r.ready ? `${Math.round(performance.now() - t0)} ms` : "모델 대기";
+      for (const k of ["switch", "toggle", "power_strip"]) document.getElementById("n-" + k).textContent = boxes.filter(b => b.kind === k).length;
+    } catch { await new Promise(r => setTimeout(r, 1000)); }
+  }
+}
+
+async function info() {
+  try {
+    const i = await (await fetch("/info")).json();
+    document.getElementById("meta").textContent = !i.ready ? "모델 준비 중" :
+      i.epoch != null ? `epoch ${i.best_epoch} 모델 · mAP50 ${i.map50}` : "모델 로드됨";
+  } catch {}
+}
+
+// ---------- 연결 확인: pick a key, photo before, press, photo after
+let frozen = null, spot = null, sel = null, shot = null, step = -1;
+const confirmed = {};
+const keyId = b => b.kind === "switch" ? `${room}:${b.gang_index}/${b.gang_count}` : null;
+const panel = document.getElementById("panel");
+
+function snap() {
+  const s = Math.min(1, 960 / v.videoWidth), cv = document.createElement("canvas");
+  cv.width = v.videoWidth * s; cv.height = v.videoHeight * s;
+  cv.getContext("2d").drawImage(v, 0, 0, cv.width, cv.height);
+  return cv;
+}
+
+function show(stepText, say, sub, buttons) {
+  panel.classList.add("on");
+  panel.querySelector(".step").textContent = stepText;
+  panel.querySelector(".say").innerHTML = say;
+  panel.querySelector(".sub").textContent = sub || "";
+  panel.querySelector(".sub").style.display = sub ? "" : "none";
+  const row = panel.querySelector(".row"); row.innerHTML = "";
+  for (const [t, fn, primary] of buttons) {
+    const el = document.createElement("button"); el.textContent = t; el.onclick = fn;
+    if (primary) el.className = "primary";
+    row.appendChild(el);
+  }
+}
+
+function close() { step = -1; frozen = spot = sel = shot = null; panel.classList.remove("on"); }
+
+function pickKey() {
+  step = 0; frozen = spot = shot = null; sel = null;
+  show("1 / 3", "확인할 스위치 키를 화면에서 누르세요", "박스를 탭하면 그 키를 고릅니다.",
+       [["키 없이 진행", () => before(), false], ["닫기", close, false]]);
+}
+
+function before() {
+  step = 1;
+  const guess = sel?.guess ? `예상: <b>${sel.guess}</b>` : "예상 없음";
+  show("2 / 3", "조명이 보이게 카메라를 돌린 뒤 찍으세요", sel ? `고른 키 ${sel.key} · ${guess.replace(/<[^>]+>/g, "")}` : "",
+       [["누르기 전 찍기", () => { shot = snap(); after(); }, true], ["닫기", close, false]]);
+}
+
+function after() {
+  step = 2;
+  show("3 / 3", "스위치를 누르고, 같은 자리에서 찍으세요", "카메라를 최대한 움직이지 마세요.",
+       [["누른 뒤 찍기", run, true], ["다시", before, false]]);
+}
+
+async function run() {
+  const a = snap();
+  frozen = a;
+  show("확인 중", "전후 사진을 비교하는 중…", "", []);
+  try {
+    const r = await (await fetch("/check", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ before: shot.toDataURL("image/jpeg", 0.9), after: a.toDataURL("image/jpeg", 0.9) }) })).json();
+    spot = r.box;
+    const short = { in_view: "화면 안 조명", offscreen: "화면 밖 조명", none: "보이지 않는 장치" }[r.result];
+    let verdict = "";
+    if (sel) {
+      confirmed[sel.id] = short;
+      const lamp = sel.device && sel.device !== "exhaust_fan";
+      const agrees = r.result === "none" ? !lamp : lamp;
+      verdict = agrees ? `<span class="ok">예상(${sel.guess})과 맞음 · 연결 확정</span>`
+                       : `<span class="ng">예상(${sel.guess})과 다름 · 연결을 '${short}'로 수정</span>`;
+    }
+    show("결과", `${r.text} <span style="color:var(--muted);font-weight:400">${Math.round(r.confidence * 100)}%</span>`,
+         "", [["다른 키 확인", pickKey, true], ["닫기", close, false]]);
+    if (verdict) panel.querySelector(".sub").innerHTML = verdict, panel.querySelector(".sub").style.display = "";
+  } catch (e) {
+    show("오류", "비교에 실패했습니다", String(e), [["다시", before, true], ["닫기", close, false]]);
+  }
+}
+
+document.getElementById("checkBtn").onclick = () => step < 0 ? pickKey() : close();
+c.addEventListener("click", ev => {
+  if (step !== 0 || !v.videoWidth) return;
+  const f = fit(), x = ((ev.clientX * devicePixelRatio) - f.ox) / (v.videoWidth * f.s), y = ((ev.clientY * devicePixelRatio) - f.oy) / (v.videoHeight * f.s);
+  const hit = boxes.filter(b => b.kind === "switch").find(b => x >= b.box[0] && x <= b.box[0] + b.box[2] && y >= b.box[1] && y <= b.box[1] + b.box[3]);
+  if (!hit) return;
+  sel = { id: keyId(hit), key: hit.gang_count > 1 ? `${hit.gang_index + 1}/${hit.gang_count}` : "1구",
+          guess: hit.guess?.[0]?.label, device: hit.guess?.[0]?.device };
+  before();
+});
+
+start().catch(e => msg.textContent = "카메라를 열 수 없습니다: " + e.message);
+draw(); loop(); info(); setInterval(info, 15000);
+</script>
+</body>
+</html>
