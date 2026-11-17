@@ -1,7 +1,9 @@
 # Starting values (C-12). Tune here, never in code.
 detector:
   # Control kinds in data-model.md order. The order is the YOLO class id.
-  classes: [switch, push_button, toggle, knob, remote]
+  # detector-v1 and v2 were trained on the earlier five kinds; the labels moved to
+  # these three on 2026-11-17 (dataset scripts/migrate_three_kinds.py).
+  classes: [switch, toggle, power_strip]
   # Kinds folded into another kind for training only; labels are not changed.
   # Tried in detector-v2 (all kinds -> switch): kind-agnostic AP50 on eval 0.793
   # vs 0.819 for the five-class v1, so it is off. Example:
@@ -16,7 +18,7 @@ detector:
   # `eval` is never seen in training or model choice; it is only for evaluate.py.
   val_fraction: 0.15
   # Rare kinds: train images holding one are listed this many times.
-  oversample: {push_button: 3, toggle: 3, knob: 3, remote: 3}
+  oversample: {toggle: 3}
   train:
     model: yolo11s.pt
     imgsz: 640

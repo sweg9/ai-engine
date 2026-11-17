@@ -8,7 +8,7 @@ The hub in `backend-server` imports this package and calls it through one `ai_en
 
 ## Control detector (FR-01)
 
-A YOLO11 model with the five control kinds of `data-model.md`, in this order: `switch`, `push_button`, `toggle`, `knob`, `remote`. All numbers (model, image size, epochs, held-out share, oversampling, thresholds) are in [settings.yaml](settings.yaml) (C-12).
+A YOLO11 model with the three control kinds of `data-model.md`, in this order: `switch`, `toggle`, `power_strip`. detector-v1 and v2 below were trained before the labels moved from five kinds to these three (2026-11-17); the next model is trained on the three. All numbers (model, image size, epochs, held-out share, oversampling, thresholds) are in [settings.yaml](settings.yaml) (C-12).
 
 The [dataset](https://github.com/sweg9/dataset) repo must be checked out next to this one (`../dataset`).
 

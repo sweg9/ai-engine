@@ -1,8 +1,8 @@
-"""FR-01: the detector dataset keeps the five kinds and the revise/eval split."""
+"""FR-01: the detector dataset keeps the three kinds and the revise/eval split."""
 from detector.build_dataset import assign, train_classes, yolo_lines
 from detector.evaluate import match
 
-CLASSES = ["switch", "push_button", "toggle", "knob", "remote"]
+CLASSES = ["switch", "toggle", "power_strip"]
 
 
 def rec(split="revise", burst="b1", controls=()):
@@ -27,7 +27,7 @@ def test_box_converted_and_clipped():
     c = {"kind": "toggle", "bbox": [0.9, 0.1, 0.2, 0.2], "decoy": False}
     (line,) = yolo_lines(rec(controls=[c]), CLASSES)
     k, cx, cy, w, h = line.split()
-    assert k == "2"
+    assert k == "1"
     assert abs(float(w) - 0.1) < 1e-6 and abs(float(cx) - 0.95) < 1e-6
 
 
@@ -46,10 +46,10 @@ def test_match_counts_wrong_kind_as_miss():
 def test_merge_folds_kinds_into_one_class():
     cfg = {"classes": CLASSES, "merge": {k: "switch" for k in CLASSES[1:]}}
     assert train_classes(cfg) == ["switch"]
-    c = {"kind": "knob", "bbox": [0.1, 0.1, 0.2, 0.2], "decoy": False}
+    c = {"kind": "power_strip", "bbox": [0.1, 0.1, 0.2, 0.2], "decoy": False}
     (line,) = yolo_lines(rec(controls=[c]), ["switch"], cfg["merge"])
     assert line.startswith("0 ")
 
 
-def test_no_merge_keeps_five_classes():
+def test_no_merge_keeps_three_classes():
     assert train_classes({"classes": CLASSES}) == CLASSES
