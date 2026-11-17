@@ -1,0 +1,47 @@
+# Starting values (C-12). Tune here, never in code.
+# Relative paths are resolved from the root of this repo.
+paths:
+  dataset_root: ../dataset                  # the private dataset repo, checked out next to this one
+  synthetic_root: ../synthetic/evidence     # synthetic before/after renders (synthetic/synth_evidence.py)
+  build_dir: data/yolo                      # generated, git-ignored
+  effect_cache: data/effect_cache           # generated, git-ignored
+  detector_weights: models/detector-yolo11n-640-synth.pt   # git-ignored; see reports/yolo11n-640-synth.md
+  effect_weights: models/effect-check-v1.pt                 # git-ignored
+  prior: linker/prior.json
+
+detector:
+  # The three control kinds of data-model.md. The order is the YOLO class id.
+  classes: [switch, toggle, power_strip]
+  # roboflow-switch-3inct boxes the whole plate, not the key.
+  exclude_folders: [roboflow-switch-3inct]
+  synthetic_crop_zoom: [2, 5]     # a synthetic crop is this many plate widths wide
+  train:
+    model: yolo11n.pt
+    imgsz: 640
+    epochs: 60
+    patience: 15
+    batch: 16
+    workers: 2
+    device: mps
+  predict:
+    conf: 0.3
+
+linker:
+  alpha: 3.0                # weight of the coarser level when a finer level has few counts
+  floor: 0.1                # share of every guess spread evenly, so nothing is certain before a press
+  out_of_view_share: 0.12   # base chance that a key runs something not listed (a fan, another room)
+  unused_p: 0.3             # chance that a listed device is run by a switch elsewhere
+  label_weight: {certain: 1.0, likely: 0.8, guess: 0.5}
+  plate_gap: 1.0            # keys closer than this many key widths are on one plate
+
+effect_check:
+  lamp_min: 0.5             # a lamp crop counts as changed above this
+  scene_min: 0.5            # the whole picture counts as changed above this
+  held_out_folders: 2       # the last synthetic seed folders, kept out of training
+  epochs: 8
+  simple:                   # the plain brightness check (effect_check/change_check.py)
+    min_change: 0.06
+    min_share: 0.02
+  spot:                     # finding the lamp that changed when no lamp box is known
+    min_rise: 0.12
+    min_lit: 0.45

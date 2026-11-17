@@ -1,0 +1,7 @@
+# Python 3.11. Versions used for yolo11n-640-synth.
+ultralytics==8.4.215
+torch==2.15.0
+torchvision==0.29.2
+pillow
+numpy
+pyyaml>=6
