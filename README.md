@@ -1,4 +1,9 @@
 # ai-engine
+
+## Interface for the hub
+
+The hub in `backend-server` imports this package and calls it through one `ai_engine.Engine` object. The calls, their results and the settings they need are on the wiki: [ai-engine interface](https://sweg9.github.io/docs/api/ai-engine). It is not built yet.
+
 ## Skills and standards
 
 `skills/` is a git submodule of [harness](https://github.com/sweg9/harness). It holds the shared standards and skills for this project. Claude Code finds the skills through `.claude/skills`.
