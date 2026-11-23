@@ -26,16 +26,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from settings import S, path   # noqa: E402
+from ai_engine.link import CLASSES, ROOMS, position, rule_counts, Prior as BasePrior   # noqa: E402,F401
 
 L = S["linker"]
 
-CLASSES = ["ceiling_light", "downlight", "pendant_light", "wall_light", "floor_lamp",
-           "cabinet_light", "accent_light", "exhaust_fan", "other"]
 # a guess of "accent_light" (an indirect or extra light) fits any of these
 ACCENT_GROUP = {"downlight", "pendant_light", "wall_light", "floor_lamp", "cabinet_light", "accent_light"}
 OUT_OF_VIEW = "out_of_view"
 OFFSCREEN = "offscreen"
-ROOMS = ["living_room", "bedroom", "kitchen", "bathroom", "hallway", "utility_room", "dressing_room", "other"]
 
 
 def device_class(name):
@@ -50,68 +48,15 @@ def device_class(name):
     return "other"
 
 
-def position(i, n):
-    if i is None or not n:
-        return "unknown"
-    return "only" if n == 1 else "first" if i == 0 else "last" if i == n - 1 else "middle"
-
-
-# Rules the table starts from, as pseudo-counts. Written from how Korean apartments are
-# usually wired; every real or verified count is added on top.
-def rule_counts(room, pos):
-    c = Counter({k: 0.2 for k in CLASSES})
-    if pos in ("only", "first", "unknown"):
-        c["ceiling_light"] += 3
-    else:
-        c["accent_light"] += 2
-        c["downlight"] += 0.5
-    if room == "bathroom" and pos in ("middle", "last"):
-        c["exhaust_fan"] += 3
-    if room == "kitchen" and pos in ("middle", "last"):
-        c["cabinet_light"] += 1.5
-    if room in ("living_room", "bedroom") and pos in ("middle", "last"):
-        c["pendant_light"] += 0.5
-    return c
-
-
-class Prior:
-    """Counts at three levels with back-off: (room, n, i) -> (room, position) -> (position)."""
+class Prior(BasePrior):
+    """The table of `ai_engine.link`, with the starting values of settings.yaml."""
 
     def __init__(self, alpha=L["alpha"], floor=L["floor"]):
-        self.alpha, self.floor = alpha, floor
-        self.c = {lvl: defaultdict(Counter) for lvl in ("exact", "room_pos", "pos")}
-
-    @staticmethod
-    def keys(room, n, i):
-        pos = position(i, n)
-        return {"exact": f"{room}|{n}|{i}", "room_pos": f"{room}|{pos}", "pos": pos}
-
-    def add(self, room, n, i, cls, w=1.0):
-        for lvl, k in self.keys(room, n, i).items():
-            self.c[lvl][k][cls] += w
-
-    def probs(self, room, n, i):
-        k = self.keys(room, n, i)
-        base = rule_counts(room, k["pos"])
-        p = {c: base[c] / sum(base.values()) for c in CLASSES}
-        for lvl in ("pos", "room_pos", "exact"):             # coarse to fine
-            cnt = self.c[lvl].get(k[lvl], Counter())
-            tot = sum(cnt.values())
-            p = {c: (cnt[c] + self.alpha * p[c]) / (tot + self.alpha) for c in CLASSES}
-        # a guess is never certain before a press
-        return {c: (1 - self.floor) * p[c] + self.floor / len(CLASSES) for c in CLASSES}
-
-    def save(self, path):
-        Path(path).write_text(json.dumps({"alpha": self.alpha, "counts": {l: {k: dict(v) for k, v in d.items()} for l, d in self.c.items()}}, indent=1))
+        super().__init__(alpha, floor)
 
     @classmethod
-    def load(cls, path):
-        d = json.loads(Path(path).read_text())
-        p = cls(d["alpha"])
-        for lvl, table in d["counts"].items():
-            for k, v in table.items():
-                p.c[lvl][k] = Counter(v)
-        return p
+    def load(cls, path, floor=L["floor"]):
+        return super().load(path, floor)
 
 
 class HomeLinker:
