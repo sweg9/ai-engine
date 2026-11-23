@@ -238,7 +238,9 @@ class Engine:
         how = "brighter" if mean > 0 else "darker"
         reason = (f"{score:.0%} of the region got {how}" if changed.any() else "the region did not change")
         conf = _clip01(0.5 + abs(score - c["threshold"]) / max(c["threshold"], 1e-6) / 2)
-        return ChangeResult(change_score=_clip01(score), clear=clear, confidence=conf, reason=reason)
+        direction = ("brighter" if mean > 0 else "darker") if clear else "none"
+        return ChangeResult(change_score=_clip01(score), clear=clear, direction=direction, confidence=conf,
+                            reason=reason)
 
     def detect_devices(self, image):
         """Devices in the region that changed (FR-02, M-S2). Empty until the model exists."""

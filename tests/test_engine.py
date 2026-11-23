@@ -156,6 +156,9 @@ def test_measure_change(engine):
     same = engine.measure_change(dark, dark)
     assert not same.clear and same.change_score == 0.0
     assert "brighter" in engine.measure_change(dark, lit).reason
+    assert engine.measure_change(dark, lit).direction == "brighter"
+    assert engine.measure_change(lit, dark).direction == "darker"
+    assert same.direction == "none"
 
 
 # ---------- check (FR-08)

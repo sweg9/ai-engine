@@ -74,6 +74,7 @@ class Fingerprint(BaseModel):
 class ChangeResult(Result):
     change_score: Ratio
     clear: bool
+    direction: Literal["brighter", "darker", "none"]   # of the changed cells; none without a clear change
 
 
 class DeviceBox(Result):
