@@ -68,7 +68,8 @@ fingerprint:
   similarity_to_refind: 0.7 # FR-09
 
 change:
-  cell_min: 0.06            # a cell of an 8 x 8 grid changed when its mean luminance moved this much
+  grid: 8                   # the region is split into grid x grid cells
+  cell_min: 0.06            # a cell changed when its mean luminance moved this much
   threshold: 0.3            # share of changed cells for a clear change (C-08)
 
 devices:
@@ -92,4 +93,5 @@ refind:
   require_fingerprint: true # FR-09: no press without a fingerprint match
 
 press:
+  planner: script           # motion planner (C-13): script now, a VLA model later
   push_ms: {switch: 400, toggle: 400, power_strip: 400}

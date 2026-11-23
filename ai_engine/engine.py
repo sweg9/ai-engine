@@ -11,6 +11,7 @@ import numpy as np
 
 from . import images
 from .link import ROOMS, Prior, plates
+from .planner import PLANNERS
 from .results import (Actuator, ChangeResult, CheckResult, ClearResult, ControlBox, DeviceBox,
                       EngineError, Fingerprint, Gang, LinkGuess, PersonBox, PressPlan,
                       RefindResult, SavedControl, StateResult)
@@ -109,14 +110,18 @@ class Engine:
         floor = _get(settings, "linker.floor")
         alpha = _get(settings, "linker.alpha")
         models["prior"] = Prior.load(prior, floor) if prior else Prior(alpha, floor)
+        planner = _get(settings, "press.planner")
+        if planner not in PLANNERS:
+            raise EngineError(f"press.planner {planner!r} is not one of {sorted(PLANNERS)}")
         for key in ("detector.predict.conf", "detector.predict.imgsz", "linker.plate_gap",
                     "state.threshold", "clear.min_score", "clear.min_sharpness",
-                    "fingerprint.similarity_to_refind", "change.threshold", "change.cell_min",
+                    "fingerprint.similarity_to_refind", "change.threshold", "change.cell_min", "change.grid",
                     "devices.conf", "check.light.upper", "check.light.lower",
                     "check.light.scene_upper", "check.light.scene_lower", "check.fan.upper",
                     "check.fan.lower", "people.conf", "refind.max_shift",
                     "refind.require_fingerprint", "press.push_ms"):
             _get(settings, key)
+        models["planner"] = PLANNERS[planner](settings)
         return cls(settings, root, models, files)
 
     def _yolo(self, name, img, conf):
@@ -220,7 +225,7 @@ class Engine:
         images.check_image(before, "before")
         images.check_image(after, "after")
         c = self.s["change"]
-        grid = 8
+        grid = c["grid"]
         size = (max(grid, before.shape[0] // grid * grid), max(grid, before.shape[1] // grid * grid))
         b = images.resize(images.gray(before), size)
         a = images.resize(images.gray(after), size)
@@ -340,20 +345,11 @@ class Engine:
                             reason=f"{saved.kind} found again by place only (no fingerprint)")
 
     def plan_press(self, control, kind, actuators):
-        """Which actuator presses and how long (FR-09). A script now, swappable later (C-13)."""
+        """Which actuator presses and how long (FR-09), from the planner in `press.planner` (C-13)."""
         if kind not in KINDS:
             raise ValueError(f"unknown control kind {kind!r}")
         acts = [a if isinstance(a, Actuator) else Actuator.model_validate(a) for a in actuators]
-        push_ms = int(self.s["press"]["push_ms"][kind])
-        if not control.found or control.box is None:
-            return PressPlan(actuator=None, push_ms=push_ms, confidence=1.0, reason=f"the {kind} was not found again")
-        cx, cy = _center(control.box)
-        facing = [a for a in acts if a.region[0] <= cx <= a.region[2] and a.region[1] <= cy <= a.region[3]]
-        if not facing:
-            return PressPlan(actuator=None, push_ms=push_ms, confidence=1.0, reason=f"no actuator faces the {kind}")
-        best = min(facing, key=lambda a: sum((p - q) ** 2 for p, q in zip(_center(a.region), (cx, cy))))
-        return PressPlan(actuator=best.id, push_ms=push_ms, confidence=control.confidence,
-                         reason=f"actuator {best.id} faces the {kind}")
+        return self._m["planner"].plan(control, kind, acts)
 
     # ---------- reports
 
