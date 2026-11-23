@@ -1,8 +1,8 @@
 # ai-engine
 
-## Interface for the hub
+## Interface for the enclave
 
-The hub in `backend-server` imports this package and calls it through one `ai_engine.Engine` object. The calls, their results and the settings they need are on the wiki: [ai-engine interface](https://sweg9.github.io/docs/api/ai-engine). It is not built yet.
+The enclave program in `backend-server` (`src/backend/enclave/`) imports this package and calls it through one `ai_engine.Engine` object. The hub and the server never import it. The enclave gets its settings over vsock at start, so no image holds them. The calls, their results and the settings they need are on the wiki: [ai-engine interface](https://sweg9.github.io/docs/api/ai-engine). It is not built yet.
 
 ## Skills and standards
 
