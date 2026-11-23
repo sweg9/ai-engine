@@ -1,0 +1,21 @@
+# Packages only ai_engine, for the enclave image: pip install "ai-engine[models] @ git+https://github.com/sweg9/ai-engine@<commit>"
+# The training scripts (detector/, linker/, effect_check/) keep using requirements.txt.
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-engine"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["numpy", "pydantic>=2,<3"]
+
+[project.optional-dependencies]
+models = ["ultralytics==8.4.215", "torch==2.15.0", "torchvision==0.29.2"]
+test = ["pytest", "pyyaml>=6"]
+
+[tool.setuptools]
+packages = ["ai_engine"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
