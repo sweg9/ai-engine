@@ -269,6 +269,42 @@ def test_refind_fails_when_nothing_is_near():
     assert not e.refind_control(img(), SAVED).found
 
 
+class Fingerprints(Detects):
+    """A Detects whose fingerprint call answers a fixed vector, as DINOv2 will."""
+
+    def __init__(self, found, vector):
+        super().__init__(found)
+        self.vector = vector
+
+    def fingerprint(self, crop):
+        return Fingerprint(vector=self.vector, model="test")
+
+
+def saved_with(vector):
+    return SavedControl(kind="switch", box=(0.40, 0.30, 0.45, 0.40),
+                        fingerprint=Fingerprint(vector=vector, model="test"))
+
+
+def test_refind_below_the_similarity_cancels():
+    """FR-09: similarity under fingerprint.similarity_to_refind (0.7) means not found."""
+    e = Fingerprints([switch((0.41, 0.31, 0.46, 0.41))], (0.6, 0.8))
+    r = e.refind_control(img(), saved_with((1.0, 0.0)))
+    assert not r.found and r.box is None and r.similarity == pytest.approx(0.6)
+    assert "looks different" in r.reason
+
+
+def test_refind_at_or_above_the_similarity_finds():
+    e = Fingerprints([switch((0.41, 0.31, 0.46, 0.41))], (0.8, 0.6))
+    r = e.refind_control(img(), saved_with((1.0, 0.0)))
+    assert r.found and r.similarity == pytest.approx(0.8) and r.box == (0.41, 0.31, 0.46, 0.41)
+
+
+def test_refind_threshold_comes_from_settings():
+    e = Fingerprints([switch((0.41, 0.31, 0.46, 0.41))], (0.8, 0.6))
+    e.s["fingerprint"]["similarity_to_refind"] = 0.9
+    assert not e.refind_control(img(), saved_with((1.0, 0.0))).found
+
+
 ACTUATORS = [Actuator(id="A1", region=(0.0, 0.0, 0.5, 1.0)), Actuator(id="A2", region=(0.5, 0.0, 1.0, 1.0))]
 
 
@@ -305,3 +341,20 @@ def test_fake_engine_follows_the_script():
 def test_fake_engine_has_every_call():
     calls = {n for n in dir(Engine) if not n.startswith("_") and n != "load"}
     assert calls <= set(dir(FakeEngine))
+
+
+# ---------- settings (C-12, C-13)
+
+def test_unknown_planner_fails_the_load():
+    s = settings()
+    s["press"]["planner"] = "vla"
+    with pytest.raises(EngineError, match="press.planner"):
+        Engine.load(s)
+
+
+def test_change_grid_comes_from_settings():
+    s = settings()
+    s["change"]["grid"] = 2
+    before, after = img(40), img(40)
+    after[:30, :40] = 200              # one quarter of the region
+    assert Engine.load(s).measure_change(before, after).change_score == pytest.approx(0.25)
