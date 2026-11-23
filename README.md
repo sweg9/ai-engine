@@ -1,10 +1,10 @@
 # ai-engine
 
-All recognition for the hub, run locally with no model API: control detector, state classifier, device detector, result check, fingerprints and sound events (FR-01, FR-02, FR-08, FR-09). The models are listed on the [wiki](https://sweg9.github.io/docs/product/models). The requirements are on the [wiki](https://sweg9.github.io/docs/product/requirements).
+All recognition of NOVA, run in the Nitro Enclave on AWS with our own models and no model API: control detector, state classifier, device detector, result check, fingerprints and sound events (FR-01, FR-02, FR-08, FR-09). The models are listed on the [wiki](https://sweg9.github.io/docs/product/models). The requirements are on the [wiki](https://sweg9.github.io/docs/product/requirements).
 
-## Interface for the hub
+## Interface for the enclave
 
-The hub in `backend-server` imports this package and calls it through one `ai_engine.Engine` object. The calls, their results and the settings they need are on the wiki: [ai-engine interface](https://sweg9.github.io/docs/api/ai-engine). It is not built yet.
+The enclave program in `backend-server` (`src/backend/enclave/`) imports this package and calls it through one `ai_engine.Engine` object. The hub and the server never import it. The enclave gets its settings over vsock at start, so no image holds them. The calls, their results and the settings they need are on the wiki: [ai-engine interface](https://sweg9.github.io/docs/api/ai-engine). It is not built yet.
 
 ## Control detector (FR-01)
 
@@ -27,7 +27,7 @@ uv run pytest
 
 `internal/lgh-appliance/` is left out (appliance photos, not switches). Train images holding a rare kind are listed several times (`oversample`). `merge` folds kinds together for training only, without changing the labels; it is off because the single-class detector-v2 was worse than the five-class detector-v1.
 
-`detector.evaluate` reports precision and recall per kind at `predict.conf` and IoU `predict.iou`, for all of `eval` and separately for `internal` (team photos) and `external` (public datasets). `kind_agnostic` counts a control as found whatever kind was predicted. The hub now takes the kind from the detector itself (there is no VLM any more), so the per-kind numbers are the ones that matter.
+`detector.evaluate` reports precision and recall per kind at `predict.conf` and IoU `predict.iou`, for all of `eval` and separately for `internal` (team photos) and `external` (public datasets). `kind_agnostic` counts a control as found whatever kind was predicted. The enclave now takes the kind from the detector itself (there is no VLM any more), so the per-kind numbers are the ones that matter.
 
 | Model | Classes | Kind-agnostic P / R on `eval` (conf 0.25) | Team photos P / R | Used |
 |---|---|---|---|---|
