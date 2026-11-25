@@ -16,6 +16,11 @@ press has `evidence` for the pressed key. Lamp boxes and states are in `source.d
 
 Output: <out>/images/syn-e<seed>-<n>.jpg and <out>/labels.jsonl, in the labeling-spec
 record format. Synthetic records are training data only (`split: revise`).
+
+--touch 0.5 makes about half of the plates flat touch panels (white plate, gray glass window,
+one to three keys stacked top to bottom, each with a round indicator that is lit while the light
+it runs is off), and adds `source.touch_keys`. --close 0.5 shoots about half of the scenes from
+0.35 to 1 m in front of the plate, as a phone photo of a switch. Without them the output is as before.
 """
 
 import json
@@ -39,12 +44,18 @@ OUT = Path(arg("--out", "evidence"))
 SCENES = arg("--scenes", 3)
 SEED = arg("--seed", 21)
 RES = (arg("--width", 1280), arg("--height", 960))
+# Share of plates that are flat touch panels (white plate, gray glass window, one indicator per key).
+# 0 keeps the random sequence, and so the renders of seeds made before it, unchanged.
+TOUCH = arg("--touch", 0.0)
+# Share of scenes shot close to the plate (0.35 to 1 m), as most phone photos of a switch are. 0 keeps the old sequence.
+CLOSE = arg("--close", 0.0)
 
 
 # ---------- scene helpers
 
 def clear():
     bpy.ops.wm.read_factory_settings(use_empty=True)
+    LEDS.clear()
     sc = bpy.context.scene
     for eng in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE"):
         try:
@@ -207,12 +218,51 @@ def cabinet_light(i, x, y, h):
 LAMP_TYPES = [ceiling_panel, downlights, pendant, floor_lamp, sconce, cabinet_light]
 
 
-# ---------- plates (rocker keys or flat dark keys)
+# ---------- plates (rocker keys, flat dark keys, or touch panels)
 
 PLATE_COLORS = [gray(0.85), gray(0.7, 0.1), gray(0.35), gray(0.06), (0.75, 0.68, 0.55)]
+LEDS = {}   # key object name -> its indicator material, on touch panels only
+
+
+def touch_panel(x, z, n):
+    """A flat touch panel as in Korean apartments: a white plate with a gray glass window, the keys
+    stacked top to bottom in the window, a dark band under them and a small maker mark below.
+    Each key has a round indicator that is lit while the light it runs is off."""
+    w, h = random.uniform(0.068, 0.078), random.uniform(0.112, 0.124)
+    p = box("plate", (w, 0.008, h), (x, -0.004, z), material("plate", gray(random.uniform(0.86, 0.95), 0.05), 0.3))
+    ww = w * random.uniform(0.52, 0.6)
+    wh = h * random.uniform(0.6, 0.66)
+    top = z + h / 2 - h * 0.1
+    band = wh * 0.13
+    kh = (wh - band) / n
+    glass = material("glass", gray(random.uniform(0.55, 0.72)), 0.12)
+    keys = []
+    for k in range(n):
+        kz = top - kh * (k + 0.5)
+        key = box("key", (ww, 0.003, kh - 0.0006), (x, -0.0095, kz), glass)
+        key["row"] = k
+        led = material("led", gray(0.8), 0.3, emit=(0.85, 0.92, 1.0), strength=0)
+        led["on_strength"] = random.uniform(8, 20)
+        cylinder("indicator", 0.0035, 0.0012, (x, -0.0112, kz + kh * random.uniform(-0.15, 0.15)), led, rot=(math.pi / 2, 0, 0))
+        LEDS[key.name] = led
+        keys.append(key)
+    box("band", (ww, 0.003, band), (x, -0.0095, top - wh + band / 2), material("band", gray(0.08), 0.2))
+    box("mark", (ww * 0.35, 0.001, h * 0.03), (x, -0.0085, z - h / 2 + h * 0.1), material("mark", (0.15, 0.3, 0.75), 0.4))
+    return p, keys
+
+
+def set_indicators(keys_states):
+    """Light a touch key's indicator while the light it runs is off (keys_states: [(key, state)])."""
+    for key, st in keys_states:
+        m = LEDS.get(key.name)
+        if m is not None:
+            bsdf = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+            bsdf.inputs["Emission Strength"].default_value = m["on_strength"] if st == "off" else 0
 
 
 def plate(x, z, n):
+    if TOUCH and random.random() < TOUCH:
+        return touch_panel(x, z, min(n, 3))
     color = random.choice(PLATE_COLORS)
     flat = n == 1 and random.random() < 0.4
     w, h = (0.075, 0.075) if flat else (0.04 * n + 0.04, 0.12)
@@ -295,6 +345,12 @@ def build(sc):
     aim = Vector((px * 0.6 + random.uniform(-0.6, 0.6), 0, random.uniform(1.3, 1.8)))
     cam.rotation_euler = (aim - cam_loc).to_track_quat("-Z", "Y").to_euler()
     cam.data.lens = random.uniform(16, 24)
+    if CLOSE and random.random() < CLOSE:   # a phone photo of the switch: close, roughly facing it
+        cam.location = cam_loc = Vector((px + random.uniform(-0.35, 0.35), -random.uniform(0.35, 1.0), pz + random.uniform(-0.2, 0.3)))
+        aim = Vector((px + random.uniform(-0.08, 0.08), 0, pz + random.uniform(-0.08, 0.08)))
+        cam.rotation_euler = (aim - cam_loc).to_track_quat("-Z", "Y").to_euler()
+        cam.rotation_euler.rotate_axis("Z", math.radians(random.uniform(-6, 6)))
+        cam.data.lens = random.uniform(24, 32)
     sc.camera = cam
 
     keys = [(pi, k) for pi, (p, ks) in enumerate(plates) for k in ks]
@@ -328,6 +384,9 @@ def center(o):
 
 
 def gang_order(sc, cam, ks):
+    if all("row" in k for k in ks):   # touch panel: one column, top to bottom
+        order = sorted(range(len(ks)), key=lambda i: ks[i]["row"])
+        return {k: n for n, k in enumerate(order)}
     xs = [world_to_camera_view(sc, cam, center(k)).x for k in ks]
     order = sorted(range(len(ks)), key=lambda i: xs[i])
     return {k: n for n, k in enumerate(order)}
@@ -367,6 +426,7 @@ def main():
         shots = []
         for step in range(len(order) + 1):
             image_id = f"syn-e{SEED}-{n_img + 1:05d}"
+            set_indicators([(S["keys"][i][1], state(i)) for i in range(len(boxes))])
             sc.view_settings.exposure += random.uniform(-0.05, 0.05)   # a phone camera re-exposes a little
             sc.render.filepath = str(OUT / "images" / f"{image_id}.jpg")
             bpy.ops.render.render(write_still=True)
@@ -418,7 +478,9 @@ def main():
                             "lighting": "dim" if S["evening"] and not any(d["state"] == "on" for d in snap["devices"]) else "bright"},
                 "controls": controls, "status": "frozen",
                 "source": {"dataset": "synthetic-evidence", "generator": "synth_evidence.py", "seed": SEED, "scene": s,
-                           "devices": snap["devices"]},
+                           "devices": snap["devices"],
+                           **({"touch_keys": sum(S["keys"][i][1].name in LEDS for i, b in enumerate(boxes) if b[0])}
+                              if TOUCH else {})},
             }, ensure_ascii=False) + "\n")
         f.flush()
     f.close()
