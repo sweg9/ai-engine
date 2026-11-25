@@ -3,6 +3,7 @@
 paths:
   dataset_root: ../dataset                  # the private dataset repo, checked out next to this one
   synthetic_root: ../synthetic/evidence     # synthetic before/after renders (synthetic/synth_evidence.py)
+  demo_root: ../synthetic/demo              # demo bedroom renders, made locally by synthetic/render.py (C-05)
   build_dir: data/yolo                      # generated, git-ignored
   effect_cache: data/effect_cache           # generated, git-ignored
   detector_weights: models/detector-yolo11n-640-synth.pt   # git-ignored; see reports/yolo11n-640-synth.md
@@ -13,6 +14,16 @@ paths:
   devices_weights: null                     # M-S2, planned
   people_weights: models/yolo11s.pt         # pretrained COCO YOLO, git-ignored; FR-10 needs it
   fingerprint_weights: null                 # DINOv2 small, planned
+
+synthetic:
+  blender: null             # Blender executable; null = $BLENDER, then `blender` on PATH, then the macOS app
+  parallel: 2               # Blender processes at once
+  # The demo bedroom set (team decision of 2026-11-25): every key runs a bedroom ceiling light,
+  # most plates are flat touch panels, many shots are close-ups. All of it goes to detector train.
+  demo:
+    seeds: [61, 70]         # first and last seed, one folder syn-e<seed> each
+    scenes: 10              # scenes per seed
+    args: [--touch, 0.8, --close, 0.6, --bedroom]
 
 detector:
   # The three control kinds of data-model.md. The order is the YOLO class id.

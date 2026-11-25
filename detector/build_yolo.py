@@ -2,13 +2,17 @@
 
 Usage (from the repo root):
     python detector/build_yolo.py            # paths and classes come from settings.yaml
+    python detector/build_yolo.py --no-render   # skip rendering a missing demo set
+
+The demo bedroom set (`paths.demo_root`) is rendered first with Blender when a seed folder is
+missing (synthetic/render.py). The images stay on this machine and never go to git (C-05).
 
 Classes are the three control kinds of the team dataset: switch, toggle, power_strip.
 Boxes are the moving part (`bbox`), not the plate.
 
 Split: team records keep their own split (revise -> train, eval -> val).
 Synthetic scenes go to train, except the last seed folder, which is a synthetic val set
-kept apart in val_syn so the real val score is not mixed with it.
+kept apart in val_syn so the real val score is not mixed with it. The demo set all goes to train.
 
 Left out:
 - roboflow-switch-3inct: its boxes cover the whole plate, not the key.
@@ -17,7 +21,9 @@ Left out:
 
 import argparse
 import json
+import os
 import random
+import shutil
 from collections import Counter
 from pathlib import Path
 
@@ -27,6 +33,7 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from settings import S, path   # noqa: E402
+from synthetic.render import missing, render   # noqa: E402
 
 CLASSES = S["detector"]["classes"]
 SKIP_SOURCES = set(S["detector"]["exclude_folders"])
@@ -46,7 +53,13 @@ def link(src, dst):
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists() or dst.is_symlink():
         dst.unlink()
-    dst.symlink_to(src.resolve())
+    try:
+        dst.symlink_to(src.resolve())
+    except OSError:   # Windows without symlink rights: a hard link, or a copy on another drive
+        try:
+            os.link(src, dst)
+        except OSError:
+            shutil.copy2(src, dst)
 
 
 def write(out, split, name, lines):
@@ -60,7 +73,7 @@ def team(dataset, out, stats):
         folder = labels.parent
         if folder.name in SKIP_SOURCES:
             continue
-        for line in labels.read_text().splitlines():
+        for line in labels.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             r = json.loads(line)
@@ -78,16 +91,16 @@ def team(dataset, out, stats):
             stats[f"team_{split}_boxes"] += len(lines)
 
 
-def synthetic(root, out, stats, crops_per_scene=1):
-    folders = sorted(p for p in Path(root).glob("syn-e*") if (p / "labels.jsonl").exists())
+def synthetic(root, out, stats, crops_per_scene=1, hold_out=True, tag="syn"):
+    folders = sorted(p for p in Path(root).glob("syn-e*") if p.is_dir() and (p / "labels.jsonl").exists())
     if not folders:
         return
-    val_folder = folders[-1]
+    val_folder = folders[-1] if hold_out else None
     rng = random.Random(0)
     for folder in folders:
         split = "val_syn" if folder == val_folder else "train"
         seen = set()
-        for line in (folder / "labels.jsonl").read_text().splitlines():
+        for line in (folder / "labels.jsonl").read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
             if r["room_id"] in seen:          # one photo per scene: the shots of a scene look alike
                 continue
@@ -100,8 +113,8 @@ def synthetic(root, out, stats, crops_per_scene=1):
             name = f"{folder.name}__{r['image_id']}"
             link(img, out / "images" / split / f"{name}.jpg")
             write(out, split, name, [l for b in boxes for l in [yolo_line("switch", b)] if l])
-            stats[f"syn_{split}_images"] += 1
-            stats[f"syn_{split}_boxes"] += len(boxes)
+            stats[f"{tag}_{split}_images"] += 1
+            stats[f"{tag}_{split}_boxes"] += len(boxes)
             # a close crop around the plates, so the keys are not only a few pixels wide
             if split != "train" or not plates:
                 continue
@@ -125,7 +138,7 @@ def synthetic(root, out, stats, crops_per_scene=1):
                 p.parent.mkdir(parents=True, exist_ok=True)
                 crop.save(p, quality=92)
                 write(out, split, cname, lines)
-                stats["syn_train_crops"] += 1
+                stats[f"{tag}_train_crops"] += 1
 
 
 def main():
@@ -133,7 +146,10 @@ def main():
     ap.add_argument("--dataset", default=str(path("dataset_root")))
     ap.add_argument("--synthetic", default=str(path("synthetic_root")))
     ap.add_argument("--out", default=str(path("build_dir")))
+    ap.add_argument("--no-render", action="store_true", help="do not render a missing demo set")
     a = ap.parse_args()
+    if not a.no_render and not render(missing()):
+        sys.exit("demo render failed; fix it or run with --no-render")
     out = Path(a.out)
     for sub in ("images", "labels"):
         for p in (out / sub).glob("*/*"):
@@ -141,6 +157,7 @@ def main():
     stats = Counter()
     team(a.dataset, out, stats)
     synthetic(a.synthetic, out, stats)
+    synthetic(path("demo_root"), out, stats, hold_out=False, tag="demo")
     root = out.resolve()
     (out / "data.yaml").write_text(
         f"path: {root}\ntrain: images/train\nval: images/val\n"

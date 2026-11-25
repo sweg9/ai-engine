@@ -39,7 +39,7 @@ Model card and scores: [reports/yolo11n-640-synth.md](reports/yolo11n-640-synth.
 
 ```bash
 pip install -r requirements.txt                 # Python 3.11
-python detector/build_yolo.py                   # needs ../dataset and ../synthetic/evidence
+python detector/build_yolo.py                   # needs ../dataset and ../synthetic/evidence; renders ../synthetic/demo
 python detector/train.py
 python linker/linker.py --fit --eval
 python effect_check/learned.py --train --eval
@@ -49,3 +49,21 @@ python demo/server.py                           # http://localhost:8000, camera 
 
 Settings are in `settings.yaml` (C-12). Weights go in `models/` and are git-ignored.
 Synthetic renders: `synthetic/run_par.sh` with Blender 5.2.
+
+### Demo bedroom set (rendered on your machine)
+
+Synthetic photos of the demo room: every scene is a bedroom, every key runs a ceiling light
+(`bedroom_ceiling_light`, `bedroom_ceiling_light_2`), most plates are flat touch panels whose
+indicator is lit while the light is off, and many shots are close-ups. Seeds 61-70, about 300 photos.
+
+The images are not in git (C-05). `python detector/build_yolo.py` renders any missing seed
+folder into `../synthetic/demo` before it builds, so you only need Blender 4.5 or later:
+
+```bash
+export BLENDER=/path/to/blender                # or set synthetic.blender in settings.yaml
+python synthetic/render.py                     # optional: render the set on its own (about 30 min)
+python detector/build_yolo.py --no-render      # build without the demo set
+```
+
+The same seeds give the same scenes and labels on every machine. Seeds, scene count and flags
+are under `synthetic` in `settings.yaml`.

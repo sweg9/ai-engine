@@ -1,6 +1,6 @@
 """Train the control detector (FR-01) with the values in settings.yaml.
 
-    python detector/build_yolo.py
+    python detector/build_yolo.py      # renders the demo bedroom set first if it is missing (Blender)
     python detector/train.py           # writes runs/controls/weights/best.pt (git-ignored)
 
 Copy the chosen weights to the `detector_weights` path in settings.yaml.
