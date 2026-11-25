@@ -20,7 +20,10 @@ record format. Synthetic records are training data only (`split: revise`).
 --touch 0.5 makes about half of the plates flat touch panels (white plate, gray glass window,
 one to three keys stacked top to bottom, each with a round indicator that is lit while the light
 it runs is off), and adds `source.touch_keys`. --close 0.5 shoots about half of the scenes from
-0.35 to 1 m in front of the plate, as a phone photo of a switch. Without them the output is as before.
+0.35 to 1 m in front of the plate, as a phone photo of a switch. A scene with a touch panel is a
+bedroom whose ceiling lights the panel's keys run (key 0 ceiling_light, key 1 ceiling_light_2).
+--bedroom does the same for every scene and every plate (one or two keys), as in the demo.
+Without these flags the output is as before.
 """
 
 import json
@@ -49,6 +52,8 @@ RES = (arg("--width", 1280), arg("--height", 960))
 TOUCH = arg("--touch", 0.0)
 # Share of scenes shot close to the plate (0.35 to 1 m), as most phone photos of a switch are. 0 keeps the old sequence.
 CLOSE = arg("--close", 0.0)
+# The demo room: every scene is a bedroom, plates have one or two keys, and every key runs a ceiling light.
+BEDROOM = "--bedroom" in ARGS
 
 
 # ---------- scene helpers
@@ -262,7 +267,7 @@ def set_indicators(keys_states):
 
 def plate(x, z, n):
     if TOUCH and random.random() < TOUCH:
-        return touch_panel(x, z, min(n, 3))
+        return touch_panel(x, z, min(n, 2))
     color = random.choice(PLATE_COLORS)
     flat = n == 1 and random.random() < 0.4
     w, h = (0.075, 0.075) if flat else (0.04 * n + 0.04, 0.12)
@@ -304,7 +309,8 @@ def build(sc):
     side = random.choice([-1, 1])
     px = door_x + side * random.uniform(0.62, 0.75)
     pz = random.uniform(1.1, 1.35)
-    plates = [plate(px, pz, random.choices([1, 2, 3, 4], [0.3, 0.35, 0.25, 0.1])[0])]
+    n_keys = random.choices([1, 2, 3, 4], [0.3, 0.35, 0.25, 0.1])[0]
+    plates = [plate(px, pz, min(n_keys, 2) if BEDROOM else n_keys)]
     if random.random() < 0.3:
         p0 = plates[0][0]
         plates.append(plate(px + side * (p0.dimensions.x / 2 + 0.06), pz, random.choice([1, 2])))
@@ -313,6 +319,14 @@ def build(sc):
     lamps = []
     n = random.randint(2, 5)
     kinds = random.sample(LAMP_TYPES, min(n, len(LAMP_TYPES)))
+    # Keys that run the ceiling lights of a bedroom, as in the demo (team decision of 2026-11-25):
+    # every key with --bedroom, otherwise the keys of touch panels. Key j of a plate runs ceiling
+    # lamp j: ceiling_light, then ceiling_light_2. No cabinet light, so the room stays a bedroom.
+    ceiling_plates = [ks for _, ks in plates if BEDROOM or any(k.name in LEDS for k in ks)]
+    n_ceiling = min(2, max((len(ks) for ks in ceiling_plates), default=0))
+    if ceiling_plates:
+        kinds = [f for f in kinds if f not in (ceiling_panel, cabinet_light)]
+        kinds = [ceiling_panel] * n_ceiling + kinds
     for i, f in enumerate(kinds):
         x = random.uniform(-W / 2 + 0.6, W / 2 - 0.6)
         y = random.uniform(-4, -0.8) if f not in (sconce, cabinet_light) else 0
@@ -357,11 +371,18 @@ def build(sc):
     wiring = {}
     for i, key in enumerate(keys):
         wiring[i] = "fan" if random.random() < 0.1 else random.randrange(len(lamps))
+    if ceiling_plates:   # the ceiling panels are the first lamps
+        slot = {k.name: min(j, n_ceiling - 1) for ks in ceiling_plates for j, k in enumerate(ks)}
+        for i, (_, key) in enumerate(keys):
+            if key.name in slot:
+                wiring[i] = slot[key.name]
     for l in lamps:
         l.set(random.random() < 0.4)
     kinds_here = {l.kind for l in lamps}
     room = next((ROOM_OF[k] for k in ("cabinet", "wall", "floor", "pendant") if k in kinds_here),
                 random.choice(["living_room", "bedroom", "hallway"]))
+    if ceiling_plates:
+        room = "bedroom"
     return dict(plates=plates, keys=keys, lamps=lamps, wiring=wiring, cam=cam, room=room, evening=evening,
                 door_x=door_x, cam_dist=(cam_loc - Vector((px, 0, pz))).length)
 
