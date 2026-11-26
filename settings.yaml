@@ -105,4 +105,4 @@ refind:
 
 press:
   planner: script           # motion planner (C-13): script now, a VLA model later
-  push_ms: {switch: 400, toggle: 400, power_strip: 400}
+  push_ms: {switch: 2000, toggle: 2000, power_strip: 2000}  # the demo switch went down at 2000 ms on the bench (2026-11-26); the board caps a push at 2000

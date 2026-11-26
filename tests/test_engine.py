@@ -317,7 +317,7 @@ def found(box):
 
 def test_plan_press_picks_the_facing_actuator(engine):
     p = engine.plan_press(found((0.6, 0.3, 0.7, 0.4)), "switch", ACTUATORS)
-    assert p.actuator == "A2" and p.push_ms == 400
+    assert p.actuator == "A2" and p.push_ms == 2000
 
 
 def test_plan_press_cancels_without_a_facing_actuator(engine):
